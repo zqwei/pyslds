@@ -591,7 +591,8 @@ class _SLDSStatesVBEM(_SLDSStates):
         # Call pyhsmm to do message passing and compute expected suff stats
         aBl = self.vbem_aBl
         self.all_expected_stats = self._expected_statistics(self.trans_matrix, self.pi_0, aBl)
-        params = (np.log(self.trans_matrix), np.log(self.pi_0), aBl, self._normalizer)
+        # add small value  + 1e-30 to aviod -inf or zero-division in log computation
+        params = (np.log(self.trans_matrix + 1e-30), np.log(self.pi_0 + 1e-30), aBl, self._normalizer)
         return hmm_entropy(params, self.all_expected_stats)
 
     def vb_E_step_gaussian_states(self):

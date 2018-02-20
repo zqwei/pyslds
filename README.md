@@ -53,6 +53,13 @@ git clone git@github.com:mattjj/pyslds.git
 pip install -e pyslds
 ```
 
+For stylish plots:
+```
+conda install seaborn
+git clone git@github.com:mattjj/hips-lib.git
+pip install -e hips-lib
+```
+
 # Background
 Switching linear dynamical systems (SLDS) are powerful
 models for approximating nonlinear dynamical systems. The basic idea

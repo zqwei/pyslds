@@ -45,8 +45,8 @@ def expected_hmm_logprob(pi_0, trans_matrix, stats):
     assert sum_E_ztztp1T.shape == (K, K)
 
     out = 0
-    out += np.dot(E_z[0], np.log(pi_0))
-    out += np.sum(sum_E_ztztp1T * np.log(trans_matrix))
+    out += np.dot(E_z[0], np.log(pi_0 + 1e-30))
+    out += np.sum(sum_E_ztztp1T * np.log(trans_matrix  + 1e-30))
     return out
 
 

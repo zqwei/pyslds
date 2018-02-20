@@ -39,12 +39,16 @@ pip install -e pyslds
 conda create -n py2 python=2.7 anaconda
 source activate py2
 ```
-### Install other packages
+### Install with other packages
 ```
 git clone git@github.com:mattjj/pyhsmm-autoregressive.git
 pip install -e pyhsmm-autoregressive
 git clone git@github.com:mattjj/pylds.git
 pip install -e pylds
+pip install pypolyagamma
+```
+
+```
 git clone git@github.com:mattjj/pyslds.git
 pip install -e pyslds
 ```

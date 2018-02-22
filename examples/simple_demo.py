@@ -86,7 +86,7 @@ gibbs_lls = [initialize(test_model) for _ in progprint_xrange(N_gibbs_samples)]
 
 # Fit with VBEM
 print("Fitting with VBEM")
-N_vbem_iters = 100
+N_vbem_iters = 10000
 def update(model):
     model.VBEM_step()
     return model.log_likelihood()

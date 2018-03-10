@@ -538,7 +538,7 @@ class _SLDSStatesVBEM(_SLDSStates):
             RiD = np.tensordot(E_z, RiD_set, axes=1)
             DRiC = np.tensordot(E_z, DRiC_set, axes=1)
             DRiD = np.tensordot(E_z, DRiD_set, axes=1)
-            logdet = np.dot(E_z, np.array([np.linalg.slogdet(Ri)[1] for Ri in Ri_set]))
+            logdet = np.dot(E_z, np.array([np.linalg.slogdet(Ri_)[1] for Ri_ in Ri_set]))
 
             J_node = np.tensordot(E_z, CRiC_set, axes=1)
             h_node = np.einsum('ni,nij->nj', self.data, RiC)

@@ -567,6 +567,7 @@ class _SLDSStatesVBEM(_SLDSStates):
         """
         vbem_aBl = np.zeros((self.T, self.num_states))
         ids, dds, eds = self.init_dynamics_distns, self.dynamics_distns, self.emission_distns
+        print(self.E_init_stats)
 
         for k, (id, dd) in enumerate(zip(ids, dds)):
             vbem_aBl[0, k] = expected_gaussian_logprob(id.mu, id.sigma, self.E_init_stats)

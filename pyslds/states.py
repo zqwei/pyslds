@@ -567,7 +567,6 @@ class _SLDSStatesVBEM(_SLDSStates):
         """
         vbem_aBl = np.zeros((self.T, self.num_states))
         ids, dds, eds = self.init_dynamics_distns, self.dynamics_distns, self.emission_distns
-        print(self.E_init_stats)
 
         for k, (id, dd) in enumerate(zip(ids, dds)):
             vbem_aBl[0, k] = expected_gaussian_logprob(id.mu, id.sigma, self.E_init_stats)
@@ -591,7 +590,7 @@ class _SLDSStatesVBEM(_SLDSStates):
     def vb_E_step_discrete_states(self):
         # Call pyhsmm to do message passing and compute expected suff stats
         aBl = self.vbem_aBl
-        self.all_expected_stats = self._expected_statistics(self.trans_matrix, self.pi_0, aBl)
+        self.all_expected_stats = self._expected_statistics(self.trans_matrix + 1e-30, self.pi_0, aBl)
         # add small value  + 1e-30 to aviod -inf or zero-division in log computation
         params = (np.log(self.trans_matrix + 1e-30), np.log(self.pi_0 + 1e-30), aBl, self._normalizer)
         return hmm_entropy(params, self.all_expected_stats)

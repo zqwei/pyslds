@@ -896,22 +896,42 @@ class _SLDSStatesMaskedData(_SLDSStatesGibbs, _SLDSStatesVBEM, _SLDSStatesMeanFi
             C = C_set[0]
             D = D_set[0]
             CCT = CCT_set[0]
+            #
+            # Finally, we can compute the emission potential with the mask
+            #
+            # This is for single emission only
+            #
+            T, D_latent, data, inputs, mask = self.T, self.D_latent, self.data, self.inputs, self.mask
+            centered_data = data - inputs.dot(np.swapaxes(D, -2, -1))
+            J_node = np.dot(mask * sigmasq_inv, CCT).reshape((T, D_latent, D_latent))
+            h_node = (mask * centered_data * sigmasq_inv).dot(C)
+    
+            log_Z_node = -mask.sum(1) / 2. * np.log(2 * np.pi) * np.ones(T)
+            log_Z_node += 1. / 2 * np.sum(mask * np.log(sigmasq_inv))
+            log_Z_node += -1. / 2 * np.sum(mask * centered_data ** 2 * sigmasq_inv, axis=1)
         else:
             z = self.stateseq
-            sigmasq_inv = sigmasq_inv_set[z]
-            C = C_set[z]
-            D = D_set[z]
-            CCT = CCT_set[z]
+            sigmasq_inv = [sigmasq_inv_set[_] for _ in z] # sigmasq_inv_set[z]
+            C = [C_set[_] for _ in z] # C_set[z]
+            D = [D_set[_] for _ in z] # D_set[z]
+            CCT = [CCT_set[_] for _ in z] # CCT_set[z]
 
-        # Finally, we can compute the emission potential with the mask
-        T, D_latent, data, inputs, mask = self.T, self.D_latent, self.data, self.inputs, self.mask
-        centered_data = data - inputs.dot(np.swapaxes(D, -2, -1))
-        J_node = np.dot(mask * sigmasq_inv, CCT).reshape((T, D_latent, D_latent))
-        h_node = (mask * centered_data * sigmasq_inv).dot(C)
-
-        log_Z_node = -mask.sum(1) / 2. * np.log(2 * np.pi) * np.ones(T)
-        log_Z_node += 1. / 2 * np.sum(mask * np.log(sigmasq_inv))
-        log_Z_node += -1. / 2 * np.sum(mask * centered_data ** 2 * sigmasq_inv, axis=1)
+            # Finally, we can compute the emission potential with the mask
+            #
+            #
+            # multiple states
+            #
+            #
+            #
+            T, D_latent, data, inputs, mask = self.T, self.D_latent, self.data, self.inputs, self.mask
+            
+            centered_data = data - [inputs[_,:].dot(np.swapaxes(D[_], -2, -1)) for _ in range(T)]
+            J_node = np.array([(mask[_,:]*sigmasq_inv[_]).dot(CCT[_]).reshape(D_latent, D_latent) for _ in range(T)])
+            h_node = np.array([(mask[_,:] * centered_data[_,:] * sigmasq_inv[_]).dot(C[_]) for _ in range(T)])
+    
+            log_Z_node = -mask.sum(1) / 2. * np.log(2 * np.pi) * np.ones(T)
+            log_Z_node += 1. / 2 * np.sum(mask * np.log(np.array(sigmasq_inv) + 1e-30)) # avoid zero division
+            log_Z_node += -1. / 2 * np.sum(mask * centered_data ** 2 * np.array(sigmasq_inv), axis=1)
 
         return J_node, h_node, log_Z_node
 

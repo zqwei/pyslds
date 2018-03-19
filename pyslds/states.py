@@ -538,7 +538,7 @@ class _SLDSStatesVBEM(_SLDSStates):
             RiD = np.tensordot(E_z, RiD_set, axes=1)
             DRiC = np.tensordot(E_z, DRiC_set, axes=1)
             DRiD = np.tensordot(E_z, DRiD_set, axes=1)
-            logdet = np.dot(E_z, np.array([np.linalg.slogdet(Ri_)[1] for Ri_ in Ri_set]))
+            logdet = np.dot(E_z, np.array([np.linalg.slogdet(_Ri)[1] for _Ri in Ri_set]))
 
             J_node = np.tensordot(E_z, CRiC_set, axes=1)
             h_node = np.einsum('ni,nij->nj', self.data, RiC)
@@ -905,7 +905,7 @@ class _SLDSStatesMaskedData(_SLDSStatesGibbs, _SLDSStatesVBEM, _SLDSStatesMeanFi
             centered_data = data - inputs.dot(np.swapaxes(D, -2, -1))
             J_node = np.dot(mask * sigmasq_inv, CCT).reshape((T, D_latent, D_latent))
             h_node = (mask * centered_data * sigmasq_inv).dot(C)
-    
+
             log_Z_node = -mask.sum(1) / 2. * np.log(2 * np.pi) * np.ones(T)
             log_Z_node += 1. / 2 * np.sum(mask * np.log(sigmasq_inv))
             log_Z_node += -1. / 2 * np.sum(mask * centered_data ** 2 * sigmasq_inv, axis=1)
@@ -924,11 +924,11 @@ class _SLDSStatesMaskedData(_SLDSStatesGibbs, _SLDSStatesVBEM, _SLDSStatesMeanFi
             #
             #
             T, D_latent, data, inputs, mask = self.T, self.D_latent, self.data, self.inputs, self.mask
-            
+
             centered_data = data - [inputs[_,:].dot(np.swapaxes(D[_], -2, -1)) for _ in range(T)]
             J_node = np.array([(mask[_,:]*sigmasq_inv[_]).dot(CCT[_]).reshape(D_latent, D_latent) for _ in range(T)])
             h_node = np.array([(mask[_,:] * centered_data[_,:] * sigmasq_inv[_]).dot(C[_]) for _ in range(T)])
-    
+
             log_Z_node = -mask.sum(1) / 2. * np.log(2 * np.pi) * np.ones(T)
             log_Z_node += 1. / 2 * np.sum(mask * np.log(np.array(sigmasq_inv) + 1e-30)) # avoid zero division
             log_Z_node += -1. / 2 * np.sum(mask * centered_data ** 2 * np.array(sigmasq_inv), axis=1)

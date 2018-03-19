@@ -2,12 +2,11 @@ from __future__ import division
 import scipy.io as sio
 import numpy as np
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 from sklearn.decomposition import FactorAnalysis as factan
 from pybasicbayes.util.text import progprint_xrange
-from pylds.util import random_rotation
-from pyslds.models import DefaultSLDS, HMMSLDS
-import numpy.random as npr
+from pyslds.models import HMMSLDS
 from pybasicbayes.distributions import DiagonalRegression, Gaussian, Regression
 
 mat_contents = sio.loadmat('/Users/dalin/Documents/My_Research/Dataset/ALM_Svoboda_Lab_Data/Code/TLDS/TempDat/Simultaneous_Spikes.mat')
@@ -26,7 +25,8 @@ numTrial, numUnit, numTime = unit_trial.shape
 
 factor_unit_trial = unit_trial.transpose([0, 2, 1])
 factor_unit_trial = factor_unit_trial.reshape([-1, factor_unit_trial.shape[2]])
-np.random.seed(12345678)
+
+np.random.seed()
 # transition
 K = 8
 yDim = numUnit
@@ -88,7 +88,7 @@ for trial in range(numTrial):
 
 
 print("Initializing with Gibbs")
-N_gibbs_samples = 10
+N_gibbs_samples = 1000
 def initialize(model):
     model.resample_model()
     return model.log_likelihood()
@@ -97,7 +97,7 @@ gibbs_lls = [initialize(train_model) for _ in progprint_xrange(N_gibbs_samples)]
 
 
 print("Fitting with VBEM")
-N_vbem_iters = 10
+N_vbem_iters = 1000
 def update(model):
     model.VBEM_step()
     return model.log_likelihood()
@@ -106,8 +106,8 @@ train_model._init_mf_from_gibbs()
 vbem_lls = [update(train_model) for _ in progprint_xrange(N_vbem_iters)]
 
 
-
-test_model = train_model
+test_model = deepcopy(train_model)
+test_model.states_list = []
 
 mask = np.ones((numTime, numUnit), dtype=bool)
 # leave out the last neuron

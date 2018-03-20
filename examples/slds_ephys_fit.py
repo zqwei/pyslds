@@ -4,6 +4,8 @@ import numpy as np
 from copy import deepcopy
 import sys
 import os
+import glob
+import multiprocessing as mp
 
 from sklearn.decomposition import FactorAnalysis as factan
 from pybasicbayes.util.text import progprint_xrange
@@ -14,8 +16,6 @@ def loadfile(fileName, nSession):
     mat_contents = sio.loadmat(fileName)
     nDataSet = mat_contents['nDataSet']
     params = mat_contents['params']
-
-    nSession = 17 # matlab index
     nSession = nSession - 1
     totTargets = nDataSet[0, nSession][7].flatten()
     unit_yes_trial = nDataSet[0, nSession][5]
@@ -28,6 +28,8 @@ def loadfile(fileName, nSession):
 def getData(unit_trial):
     numTrial, _, _ = unit_trial.shape
     trainIndex = np.random.rand(numTrial)<0.9
+    while trainIndex.sum()>numTrial*0.92:
+        trainIndex = np.random.rand(numTrial)<0.9
     Ytrain = unit_trial[trainIndex, :, :]
     Yvalid = unit_trial[~trainIndex, :, :]
     return Ytrain, Yvalid
@@ -150,7 +152,7 @@ def LONOresults(fileName, train_model, unit_trial):
 
 
 
-def main():
+def main_single():
     fileName = sys.argv[1]
     nSession = int(sys.argv[2])
     K = int(sys.argv[3])
@@ -161,10 +163,76 @@ def main():
         Ytrain, Yvalid = getData(unit_trial=unit_trial)
         saveFileName = os.path.basename(fileName)
         saveFileName = os.path.splitext(saveFileName)[0]
-        saveFileName = saveFileName + '_Session_%02d_K_%02d_xDim_%02d_nFold_%02d'%(nSession, K, xDim, nFold)
+        saveFileName = 'fitted_results/' + saveFileName + '_Session_%02d_K_%02d_xDim_%02d_nFold_%02d'%(nSession, K, xDim, nFold+1)
         print('save to file --- %s'%(saveFileName))
         train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
         LONOresults(saveFileName, train_model, Yvalid)
 
+
+
+def main_all():
+    fileName = sys.argv[1]
+    numFold = 10
+
+    mat_contents = sio.loadmat(fileName)
+    nDataSet = mat_contents['nDataSet']
+    params = mat_contents['params']
+
+    numSession = nDataSet.size
+
+    for nSession in range(numSession):
+        totTargets = nDataSet[0, nSession][7].flatten()
+        unit_yes_trial = nDataSet[0, nSession][5]
+        unit_no_trial = nDataSet[0, nSession][6]
+        unit_trial = np.concatenate((unit_yes_trial, unit_no_trial))
+        numTrial, numUnit, _ = unit_trial.shape
+
+        for K in [2, 4, 8]:
+            for xDim in range(1, numUnit-1):
+                for nFold in range(numFold):
+                    Ytrain, Yvalid = getData(unit_trial=unit_trial)
+                    saveFileName = os.path.basename(fileName)
+                    saveFileName = os.path.splitext(saveFileName)[0]
+                    saveFileName = 'fitted_results/' + saveFileName + '_Session_%02d_K_%02d_xDim_%02d_nFold_%02d'%(nSession+1, K, xDim, nFold+1)
+                    if len(glob.glob(saveFileName + '*')) < 5:
+                        print('save to file --- %s'%(saveFileName))
+                        train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                        LONOresults(saveFileName, train_model, Yvalid)
+
+
+def main_nFold(nFold):
+    fileName = sys.argv[1]
+    mat_contents = sio.loadmat(fileName)
+    nDataSet = mat_contents['nDataSet']
+    params = mat_contents['params']
+
+    numSession = nDataSet.size
+
+    for nSession in range(numSession):
+        totTargets = nDataSet[0, nSession][7].flatten()
+        unit_yes_trial = nDataSet[0, nSession][5]
+        unit_no_trial = nDataSet[0, nSession][6]
+        unit_trial = np.concatenate((unit_yes_trial, unit_no_trial))
+        numTrial, numUnit, _ = unit_trial.shape
+
+        for K in [2, 4, 8]:
+            for xDim in range(1, numUnit-1):
+                Ytrain, Yvalid = getData(unit_trial=unit_trial)
+                saveFileName = os.path.basename(fileName)
+                saveFileName = os.path.splitext(saveFileName)[0]
+                saveFileName = 'fitted_results/' + saveFileName + '_Session_%02d_K_%02d_xDim_%02d_nFold_%02d'%(nSession+1, K, xDim, nFold+1)
+                if len(glob.glob(saveFileName + '*')) < 5:
+                    print('save to file --- %s'%(saveFileName))
+                    train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                    LONOresults(saveFileName, train_model, Yvalid)
+
+
 if __name__ == '__main__':
-    main()
+    # numFold = 10
+    # pool = mp.Pool(processes=2)
+    # pool.map(main_nFold, range(numFold))
+    # pool.close()
+    # pool.join()
+    # print('done')
+
+    main_all()

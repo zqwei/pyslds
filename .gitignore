@@ -4,3 +4,4 @@
 pyslds.egg-info/*
 examples/.ipynb_checkpoints/*
 *.png
+*.npy

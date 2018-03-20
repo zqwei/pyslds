@@ -116,7 +116,7 @@ mask[:,-1] = False
 for trial in range(numTrial):
     test_model.add_data(unit_trial[trial].T, inputs=inputs, mask=mask)
 
-test_states = test_model.states_list.pop()
+test_states = test_model.states_list[0]
 
 
 for intr in range(100):

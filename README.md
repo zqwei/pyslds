@@ -29,7 +29,7 @@ support](https://github.com/slinderman/pypolyagamma#parallel-sampling-with-openm
 ## Installing from git source
 
 ```
-git clone git@github.com:mattjj/pyslds.git
+git clone https://github.com/zqwei/pyslds.git
 pip install -e pyslds
 ```
 
@@ -41,15 +41,15 @@ source activate py2
 ```
 ### Install with other packages
 ```
-git clone git@github.com:mattjj/pyhsmm-autoregressive.git
+git clone https://github.com/mattjj/pyhsmm-autoregressive.git
 pip install -e pyhsmm-autoregressive
-git clone git@github.com:mattjj/pylds.git
+git clone https://github.com/mattjj/pylds.git
 pip install -e pylds
 pip install pypolyagamma
 ```
 
 ```
-git clone git@github.com:mattjj/pyslds.git
+git clone https://github.com/zqwei/pyslds.git
 pip install -e pyslds
 ```
 

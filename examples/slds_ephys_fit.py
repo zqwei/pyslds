@@ -6,6 +6,8 @@ import sys
 import os
 import glob
 import multiprocessing as mp
+import logging
+logging.basicConfig(filename="sldsAssertionError.log", filemode='a', formate='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s', datefmt='%H:%M:%S', level=logging.DEBUG)
 
 from sklearn.decomposition import FactorAnalysis as factan
 from pybasicbayes.util.text import progprint_xrange
@@ -190,13 +192,24 @@ def main_all():
         for K in [2, 4, 8]:
             for xDim in range(1, numUnit-1):
                 for nFold in range(numFold):
-                    Ytrain, Yvalid = getData(unit_trial=unit_trial)
                     saveFileName = os.path.basename(fileName)
                     saveFileName = os.path.splitext(saveFileName)[0]
                     saveFileName = 'fitted_results/' + saveFileName + '_Session_%02d_K_%02d_xDim_%02d_nFold_%02d'%(nSession+1, K, xDim, nFold+1)
                     if len(glob.glob(saveFileName + '*')) < 5:
                         print('save to file --- %s'%(saveFileName))
-                        train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                        is_fail = True
+                        while is_fail:
+                            try:
+                                Ytrain, Yvalid = getData(unit_trial=unit_trial)
+                                train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                                is_fail = False
+                            except AssertionError as err:
+                                logger = logging.getLogger()
+                                logger.exception(err)
+                                Ytrain, Yvalid = getData(unit_trial=unit_trial)
+                                train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                                is_fail = True
+                                
                         LONOresults(saveFileName, train_model, Yvalid)
 
 

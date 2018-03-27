@@ -41,6 +41,7 @@ source activate py2
 ```
 ### Install with other packages
 ```
+pip install future
 git clone https://github.com/mattjj/pyhsmm-autoregressive.git
 pip install -e pyhsmm-autoregressive
 git clone https://github.com/mattjj/pylds.git

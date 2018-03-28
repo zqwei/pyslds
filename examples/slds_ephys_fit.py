@@ -19,7 +19,7 @@ def loadfile(fileName, nSession):
     nDataSet = mat_contents['nDataSet']
     params = mat_contents['params']
     nSession = nSession - 1
-    totTargets = nDataSet[0, nSession][7].flatten()
+    # totTargets = nDataSet[0, nSession][7].flatten()
     unit_yes_trial = nDataSet[0, nSession][5]
     unit_no_trial = nDataSet[0, nSession][6]
     unit_trial = np.concatenate((unit_yes_trial, unit_no_trial))
@@ -183,7 +183,7 @@ def main_all():
     numSession = nDataSet.size
 
     for nSession in range(numSession):
-        totTargets = nDataSet[0, nSession][7].flatten()
+        # totTargets = nDataSet[0, nSession][7].flatten()
         unit_yes_trial = nDataSet[0, nSession][5]
         unit_no_trial = nDataSet[0, nSession][6]
         unit_trial = np.concatenate((unit_yes_trial, unit_no_trial))
@@ -209,7 +209,7 @@ def main_all():
                                 Ytrain, Yvalid = getData(unit_trial=unit_trial)
                                 train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
                                 is_fail = True
-                                
+
                         LONOresults(saveFileName, train_model, Yvalid)
 
 
@@ -222,7 +222,7 @@ def main_nFold(nFold):
     numSession = nDataSet.size
 
     for nSession in range(numSession):
-        totTargets = nDataSet[0, nSession][7].flatten()
+        # totTargets = nDataSet[0, nSession][7].flatten()
         unit_yes_trial = nDataSet[0, nSession][5]
         unit_no_trial = nDataSet[0, nSession][6]
         unit_trial = np.concatenate((unit_yes_trial, unit_no_trial))
@@ -236,16 +236,28 @@ def main_nFold(nFold):
                 saveFileName = 'fitted_results/' + saveFileName + '_Session_%02d_K_%02d_xDim_%02d_nFold_%02d'%(nSession+1, K, xDim, nFold+1)
                 if len(glob.glob(saveFileName + '*')) < 5:
                     print('save to file --- %s'%(saveFileName))
-                    train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                    # train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                    is_fail = True
+                    while is_fail:
+                        try:
+                            Ytrain, Yvalid = getData(unit_trial=unit_trial)
+                            train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                            is_fail = False
+                        except AssertionError as err:
+                            logger = logging.getLogger()
+                            logger.exception(err)
+                            Ytrain, Yvalid = getData(unit_trial=unit_trial)
+                            train_model = trainModel(saveFileName, Ytrain, K=K, xDim=xDim)
+                            is_fail = True
                     LONOresults(saveFileName, train_model, Yvalid)
 
 
 if __name__ == '__main__':
-    # numFold = 10
-    # pool = mp.Pool(processes=2)
-    # pool.map(main_nFold, range(numFold))
-    # pool.close()
-    # pool.join()
-    # print('done')
+    numFold = 10
+    pool = mp.Pool(processes=numFold)
+    pool.map(main_nFold, range(numFold))
+    pool.close()
+    pool.join()
+    print('done')
 
-    main_all()
+    # main_all()

@@ -57,7 +57,7 @@ pip install -e pyslds
 For stylish plots:
 ```
 conda install seaborn
-git clone git@github.com:mattjj/hips-lib.git
+git clone https://github.com/HIPS/hips-lib.git
 pip install -e hips-lib
 ```
 
